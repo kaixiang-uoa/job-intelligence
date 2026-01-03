@@ -1,0 +1,308 @@
+{
+	"info": {
+		"_postman_id": "job-intel-api-v1",
+		"name": "Job Intelligence API - V1",
+		"description": "RESTful API for job market intelligence and analytics\n\nVersion: 1.0 (MVP)\nBase URL: http://localhost:5000",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health & Status",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "health"]
+						},
+						"description": "Check API health and database connectivity"
+					}
+				}
+			]
+		},
+		{
+			"name": "Jobs",
+			"item": [
+				{
+					"name": "Search Jobs - All",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/jobs?page=1&pageSize=20&sortBy=posted_at_desc",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "jobs"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "20"
+								},
+								{
+									"key": "sortBy",
+									"value": "posted_at_desc"
+								}
+							]
+						},
+						"description": "Get all jobs with default pagination"
+					}
+				},
+				{
+					"name": "Search Jobs - By Trade",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/jobs?trade=tiler&page=1&pageSize=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "jobs"],
+							"query": [
+								{
+									"key": "trade",
+									"value": "tiler"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Filter jobs by trade (e.g., tiler, bricklayer)"
+					}
+				},
+				{
+					"name": "Search Jobs - By State",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/jobs?state=SA&page=1&pageSize=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "jobs"],
+							"query": [
+								{
+									"key": "state",
+									"value": "SA"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Filter jobs by state (SA, VIC, NSW, etc.)"
+					}
+				},
+				{
+					"name": "Search Jobs - Complex Filter",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/jobs?trade=tiler&state=SA&payMin=25&payMax=50&employmentType=Full-time&page=1&pageSize=10&sortBy=pay_desc",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "jobs"],
+							"query": [
+								{
+									"key": "trade",
+									"value": "tiler"
+								},
+								{
+									"key": "state",
+									"value": "SA"
+								},
+								{
+									"key": "payMin",
+									"value": "25"
+								},
+								{
+									"key": "payMax",
+									"value": "50"
+								},
+								{
+									"key": "employmentType",
+									"value": "Full-time"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								},
+								{
+									"key": "sortBy",
+									"value": "pay_desc"
+								}
+							]
+						},
+						"description": "Complex filtering with multiple criteria"
+					}
+				},
+				{
+					"name": "Search Jobs - Recent (Last 7 Days)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/jobs?postedAfter={{sevenDaysAgo}}&sortBy=posted_at_desc",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "jobs"],
+							"query": [
+								{
+									"key": "postedAfter",
+									"value": "{{sevenDaysAgo}}",
+									"description": "ISO 8601 date"
+								},
+								{
+									"key": "sortBy",
+									"value": "posted_at_desc"
+								}
+							]
+						},
+						"description": "Get jobs posted in the last 7 days"
+					}
+				},
+				{
+					"name": "Get Job By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/jobs/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "jobs", "1"]
+						},
+						"description": "Get detailed job information by ID"
+					}
+				}
+			]
+		},
+		{
+			"name": "Analytics",
+			"item": [
+				{
+					"name": "Get Overall Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "stats"]
+						},
+						"description": "Get overall job market statistics"
+					}
+				},
+				{
+					"name": "Get Stats - Last 30 Days",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/stats?since={{thirtyDaysAgo}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "stats"],
+							"query": [
+								{
+									"key": "since",
+									"value": "{{thirtyDaysAgo}}",
+									"description": "ISO 8601 date"
+								}
+							]
+						},
+						"description": "Get statistics for jobs from last 30 days"
+					}
+				},
+				{
+					"name": "Get Count By Trade",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/by-trade",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "by-trade"]
+						},
+						"description": "Get job count breakdown by trade"
+					}
+				},
+				{
+					"name": "Get Count By State",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/by-state",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "by-state"]
+						},
+						"description": "Get job count breakdown by state"
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Trigger Manual Scrape",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"source\": \"seek\",\n  \"keywords\": [\"tiler\", \"bricklayer\"],\n  \"location\": \"Adelaide\",\n  \"maxResults\": 100\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/scrape",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "scrape"]
+						},
+						"description": "Manually trigger a scrape job"
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "sevenDaysAgo",
+			"value": "{{$isoTimestamp}}",
+			"type": "string",
+			"description": "Replace with actual ISO date 7 days ago"
+		},
+		{
+			"key": "thirtyDaysAgo",
+			"value": "{{$isoTimestamp}}",
+			"type": "string",
+			"description": "Replace with actual ISO date 30 days ago"
+		}
+	]
+}

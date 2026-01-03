@@ -1,0 +1,26 @@
+# FastAPI 和 Web 服务
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+pydantic-settings==2.6.1
+
+# 爬虫库
+python-jobspy==1.1.82          # Indeed 等多平台爬虫
+requests==2.32.3                # HTTP 客户端（SEEK API）
+beautifulsoup4==4.12.3          # HTML 解析（SEEK 详情页）
+lxml==5.3.0                     # BeautifulSoup 解析器
+
+# 数据处理
+pandas==2.2.3                   # JobSpy 依赖，数据处理
+
+# 工具库
+python-dotenv==1.0.1            # 环境变量管理
+httpx==0.28.1                   # 异步 HTTP 客户端（可选）
+
+# 日志和监控
+loguru==0.7.3                   # 增强的日志库
+
+# 开发依赖（测试）
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
