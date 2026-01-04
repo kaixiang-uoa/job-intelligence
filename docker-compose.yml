@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: jobintel-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-jobintel}
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Database password required}
+    # Memory optimization for B1s (1GB RAM)
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=128MB"
+      - "-c"
+      - "max_connections=50"
+      - "-c"
+      - "work_mem=4MB"
+      - "-c"
+      - "maintenance_work_mem=64MB"
+      - "-c"
+      - "effective_cache_size=256MB"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - jobintel-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-jobintel}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Python Scraper API
+  python-api:
+    build:
+      context: ./scrape-api
+      dockerfile: Dockerfile
+    container_name: jobintel-python-api
+    environment:
+      - PORT=8000
+      - LOG_LEVEL=INFO
+    ports:
+      - "8000:8000"
+    networks:
+      - jobintel-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - postgres
+
+  # .NET Backend API
+  dotnet-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jobintel-dotnet-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${DB_NAME:-jobintel};Username=${DB_USER:-admin};Password=${DB_PASSWORD}
+      - ScrapeApi__BaseUrl=http://python-api:8000
+      - Hangfire__Username=${HANGFIRE_USERNAME:-admin}
+      - Hangfire__Password=${HANGFIRE_PASSWORD:?Hangfire password required}
+    ports:
+      - "5000:5000"
+    networks:
+      - jobintel-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      python-api:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  jobintel-network:
+    driver: bridge
