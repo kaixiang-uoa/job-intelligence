@@ -11,6 +11,15 @@
 
 Job Intelligence 是一个专注于澳洲 Trade 行业的职位数据采集与分析系统。通过自动爬取 Seek.com.au 等招聘网站的职位信息,为求职者和研究人员提供数据洞察。
 
+**🎉 项目状态**: ✅ MVP V1 已完成并成功部署到 Azure
+- **部署平台**: Azure VM (Australia East)
+- **CI/CD**: GitHub Actions + GitHub Container Registry
+- **在线访问**: http://20.92.200.112:5000/swagger
+
+> 📚 **最新文档**:
+> - [Azure 部署完整总结](docs/deployment/DEPLOYMENT_SUMMARY_2026-01-05.md) - 部署过程与技术细节
+> - [学习总结 2026-01-05](docs/LEARNING_SUMMARY_2026-01-05.md) - 深度学习笔记与面试准备
+
 ### 核心功能
 
 - 🔍 **智能爬虫**：自动抓取 Seek 平台的 Trade 职位数据

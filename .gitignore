@@ -261,3 +261,6 @@ nginx/logs/
 
 # Research projects (external repos)
 scrape-api-research/
+
+# Deployment credentials (NEVER commit)
+docs/deployment/DEPLOYMENT_CREDENTIALS.md
