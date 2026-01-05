@@ -94,6 +94,23 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Run database migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<JobIntelDbContext>();
+    try
+    {
+        app.Logger.LogInformation("Applying database migrations...");
+        await dbContext.Database.MigrateAsync();
+        app.Logger.LogInformation("Database migrations applied successfully");
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "An error occurred while migrating the database");
+        throw;
+    }
+}
+
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
