@@ -1,4 +1,5 @@
-version: '3.8'
+# Docker Compose configuration for Job Intelligence
+# Uses pre-built images from GitHub Container Registry
 
 services:
   # PostgreSQL Database
@@ -37,9 +38,7 @@ services:
 
   # Python Scraper API
   python-api:
-    build:
-      context: ./scrape-api
-      dockerfile: Dockerfile
+    image: ghcr.io/kaixiang-uoa/job-intelligence-python-api:latest
     container_name: jobintel-python-api
     environment:
       - PORT=8000
@@ -59,9 +58,7 @@ services:
 
   # .NET Backend API
   dotnet-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/kaixiang-uoa/job-intelligence-dotnet-api:latest
     container_name: jobintel-dotnet-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
