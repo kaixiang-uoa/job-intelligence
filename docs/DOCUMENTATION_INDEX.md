@@ -1,17 +1,18 @@
 # 文档索引
 
-**最后更新**: 2026-01-05
+**最后更新**: 2026-01-07
 
 ---
 
 ## 📌 最新重要文档
 
-### 部署相关（2026-01-05 更新）
+### 部署相关（2026-01-07 更新）
 
 | 文档 | 状态 | 用途 | 链接 |
 |------|------|------|------|
-| **Azure 部署完整总结** | ✅ 最新 | 部署过程回顾、技术细节、问题解决 | [DEPLOYMENT_SUMMARY_2026-01-05.md](deployment/DEPLOYMENT_SUMMARY_2026-01-05.md) |
-| **学习总结** | ✅ 最新 | 深度学习笔记、面试准备、概念理解 | [LEARNING_SUMMARY_2026-01-05.md](LEARNING_SUMMARY_2026-01-05.md) |
+| **Azure PostgreSQL 迁移计划** | ✅ 最新 | 数据库从 VM 迁移到 Azure 托管服务 | [AZURE_POSTGRES_MIGRATION.md](deployment/AZURE_POSTGRES_MIGRATION.md) |
+| **Azure 部署完整总结** | ✅ 参考 | 部署过程回顾、技术细节、问题解决 | [DEPLOYMENT_SUMMARY_2026-01-05.md](deployment/DEPLOYMENT_SUMMARY_2026-01-05.md) |
+| **学习总结** | ✅ 参考 | 深度学习笔记、面试准备、概念理解 | [LEARNING_SUMMARY_2026-01-05.md](LEARNING_SUMMARY_2026-01-05.md) |
 | **CI/CD 部署指南** | ✅ 当前 | GitHub Actions 使用文档 | [deployment/CICD_DEPLOYMENT.md](deployment/CICD_DEPLOYMENT.md) |
 | **架构对比文档** | ✅ 参考 | 单体 vs 分布式架构分析 | [deployment/ARCHITECTURE_COMPARISON.md](deployment/ARCHITECTURE_COMPARISON.md) |
 | **部署测试清单** | ✅ 参考 | 32 个测试检查点 | [deployment/DEPLOYMENT_TEST_CHECKLIST.md](deployment/DEPLOYMENT_TEST_CHECKLIST.md) |
@@ -82,6 +83,13 @@
 ---
 
 ## 🔄 文档更新历史
+
+### 2026-01-07
+- ✅ 新增：[Azure PostgreSQL 迁移计划](deployment/AZURE_POSTGRES_MIGRATION.md) - 数据库从 VM 迁移到 Azure 托管服务
+- ✅ 修改：docker-compose.yml - 移除 PostgreSQL 容器，改用 Azure PostgreSQL Flexible Server
+- ✅ 修改：.env.example - 添加 Azure DB 连接参数
+- ✅ 创建：Azure PostgreSQL Flexible Server (B1MS 免费层)
+- 📋 背景：VM 内存不足导致崩溃（97% → 预期 27%，节省 70% 内存）
 
 ### 2026-01-05
 - ✅ 新增：[Azure 部署完整总结](deployment/DEPLOYMENT_SUMMARY_2026-01-05.md)
@@ -250,6 +258,7 @@
 
 **部署相关**:
 - 如何部署到 Azure? → [CI/CD 部署指南](deployment/CICD_DEPLOYMENT.md)
+- 如何迁移数据库到 Azure PostgreSQL? → [Azure PostgreSQL 迁移计划](deployment/AZURE_POSTGRES_MIGRATION.md)
 - 为什么之前的部署失败了? → [部署总结](deployment/DEPLOYMENT_SUMMARY_2026-01-05.md)
 - 如何更新应用? → [CI/CD 部署指南](deployment/CICD_DEPLOYMENT.md#更新应用)
 
@@ -291,5 +300,5 @@
 ---
 
 **文档维护者**: 项目团队
-**最后审查**: 2026-01-05
-**下次审查**: 2026-02-05（每月审查一次）
+**最后审查**: 2026-01-07
+**下次审查**: 2026-02-07（每月审查一次）
