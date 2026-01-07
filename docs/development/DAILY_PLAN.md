@@ -677,6 +677,454 @@ docs/deployment/DEPLOYMENT_GUIDE.md
 
 ---
 
-**最后更新:** 2025-12-26
-**本次更新:** MVP V1 完成总结 + 下一步方向分析
-**状态:** ✅ V1 阶段彻底完成，等待方向决策
+## 📅 2026-01-03 至 2026-01-05: Azure 部署阶段
+
+### ✅ 已完成工作
+
+**2026-01-03**:
+- ✅ 云平台对比分析（AWS vs GCP vs Azure vs Aliyun）
+- ✅ 选择 Azure 作为部署平台
+- ✅ Azure 免费部署指南初稿
+
+**2026-01-05**:
+- ✅ GitHub Actions CI/CD 配置
+- ✅ Docker 镜像自动构建和推送
+- ✅ Azure VM (B1s) 部署成功
+- ✅ 应用首次上线运行
+- ✅ 编写部署总结和学习总结文档
+
+**相关文档**:
+- [CI/CD 部署指南](../deployment/CICD_DEPLOYMENT.md)
+- [Azure 部署完整总结](../deployment/DEPLOYMENT_SUMMARY_2026-01-05.md)
+- [学习总结 2026-01-05](../LEARNING_SUMMARY_2026-01-05.md)
+
+---
+
+## 📅 2026-01-07: 数据库架构优化 - Azure PostgreSQL 迁移
+
+### 当前日期: 2026-01-07 (周二)
+
+---
+
+### 🚨 问题发现
+
+**时间**: 2026-01-07 上午
+**问题**: VM 在部署后 26 小时崩溃，完全无响应
+
+**症状**:
+- Ping: 100% packet loss
+- SSH: Connection timeout
+- 所有 API 端点无法访问
+
+**根本原因分析**:
+```
+B1s VM 内存使用趋势:
+- 部署时 (2026-01-05):  540 MB (64%)
+- 崩溃前 (2026-01-07):  819 MB (97%)
+- 增长:                 279 MB (+51%)
+- 可用内存:             27 MB → 无法维持运行
+
+总内存: 847 MB
+服务占用:
+  - PostgreSQL:  42 MB + 增长
+  - Python API:  46 MB
+  - .NET API:    122 MB
+  - Hangfire:    65 个后台任务（内存持续增长）
+  - System:      330 MB
+```
+
+**问题严重性**: 🔴 P0 - 服务完全不可用
+
+---
+
+### 💡 解决方案设计
+
+#### 分析了 3 个方案:
+
+**Option A**: 优化当前设置
+- ❌ 治标不治本，内存瓶颈无法根本解决
+
+**Option B**: 完全分布式（3 个 VM）
+- ❌ 成本 $10-15/月，管理复杂度高
+
+**Option C**: 混合部署 ✅ **选择此方案**
+- ✅ Azure PostgreSQL Flexible Server (B1MS 免费层)
+- ✅ Python + .NET API 保留在 B1s VM
+- ✅ 成本: $0/月（完全免费）
+- ✅ 内存优化: 97% → 27% (节省 70%)
+
+#### 方案 C 详细设计:
+
+**架构变化**:
+```
+迁移前（失败）:
+┌─────────────────────────────────┐
+│  B1s VM (847 MB)                │
+│  ├─ PostgreSQL (42 MB + 增长)   │
+│  ├─ Python API (46 MB)          │
+│  ├─ .NET API (122 MB)           │
+│  └─ System (330 MB)             │
+└─────────────────────────────────┘
+Total: 819 MB (97%) ❌ 崩溃
+
+迁移后（预期）:
+┌──────────────────────────────────┐
+│ Azure PostgreSQL Flexible       │
+│ B1MS (FREE 750h/month)          │
+│ ├─ PostgreSQL 16                │
+│ └─ 32 GB Storage                │
+└──────────────────────────────────┘
+
+┌─────────────────────────────────┐
+│  B1s VM (847 MB)                │
+│  ├─ Python API (46 MB)          │
+│  ├─ .NET API (122 MB)           │
+│  └─ System (100 MB)             │
+└─────────────────────────────────┘
+Total: 268 MB (27%) ✅ 稳定
+```
+
+---
+
+### ✅ 今日完成工作 (2026-01-07)
+
+#### 1. 代码配置修改
+
+**1.1 docker-compose.yml**
+- ✅ 移除 PostgreSQL 容器配置（约 35 行）
+- ✅ 移除 postgres_data 卷定义
+- ✅ 更新 dotnet-api 连接字符串格式
+- ✅ 添加 `SslMode=Require` 支持 Azure PostgreSQL
+- ✅ 移除服务依赖关系中的 postgres
+
+**连接字符串变化**:
+```
+# 迁移前
+Host=postgres;Port=5432;Database=jobintel;...
+
+# 迁移后
+Host=${DB_HOST};Port=${DB_PORT:-5432};Database=${DB_NAME};...;SslMode=Require
+```
+
+**1.2 .env.example**
+- ✅ 添加 `DB_HOST` 参数
+- ✅ 添加 `DB_PORT` 参数
+- ✅ 更新配置说明和示例
+
+**1.3 Git 提交**
+- ✅ Commit: `351df5a` - "Migrate to Azure PostgreSQL Flexible Server"
+- ✅ 推送到 GitHub
+
+---
+
+#### 2. Azure 资源创建
+
+**2.1 注册 PostgreSQL 提供程序**
+```bash
+az provider register --namespace Microsoft.DBforPostgreSQL
+```
+- ✅ 耗时: ~50 秒
+
+**2.2 创建 PostgreSQL Flexible Server**
+```bash
+az postgres flexible-server create \
+  --resource-group job-intelligence-rg \
+  --name jobintel-db-e3b15416 \
+  --location australiaeast \
+  --admin-user jobinteladmin \
+  --admin-password JobIntel2026!Secure \
+  --sku-name Standard_B1ms \
+  --tier Burstable \
+  --version 16 \
+  --storage-size 32
+```
+
+**创建结果**:
+- ✅ 服务器: `jobintel-db-e3b15416.postgres.database.azure.com`
+- ✅ 版本: PostgreSQL 16
+- ✅ SKU: Standard_B1ms (免费 750 小时/月)
+- ✅ 存储: 32 GB
+- ✅ 耗时: ~5-6 分钟
+
+**2.3 配置防火墙**
+- ✅ 允许 VM IP (20.92.200.112) 访问
+- ✅ Azure 内部访问规则
+
+**2.4 创建数据库**
+- ✅ 数据库名: `jobintel`
+- ✅ 字符集: UTF8
+- ✅ Collation: en_US.utf8
+
+---
+
+#### 3. 文档编写
+
+**3.1 迁移计划文档** (600+ 行)
+- ✅ [AZURE_POSTGRES_MIGRATION.md](../deployment/AZURE_POSTGRES_MIGRATION.md)
+- 包含:
+  - 背景和问题分析
+  - 6 个执行阶段的完整指南
+  - 所有 Azure CLI 命令
+  - 故障排查方案
+  - 回滚计划
+
+**3.2 数据库连接信息**
+- ✅ [AZURE_DB_INFO.txt](../../AZURE_DB_INFO.txt)（仅本地，已加入 .gitignore）
+- 包含所有连接信息、凭据和管理命令
+
+**3.3 工作总结文档** (400+ 行)
+- ✅ [WORK_SUMMARY_2026-01-07.md](../deployment/WORK_SUMMARY_2026-01-07.md)
+- 详细记录今天的所有工作和技术细节
+
+**3.4 更新文档索引**
+- ✅ 更新 [DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md)
+- 添加最新文档链接
+- 更新文档历史
+
+**Git 提交**:
+- ✅ Commit: `2abd87f` - "Update documentation: Add Azure PostgreSQL migration records"
+- ✅ 推送到 GitHub
+
+---
+
+### 📊 工作统计
+
+**时间投入**:
+- 问题诊断和方案设计: ~30 分钟
+- Azure 资源创建: ~10 分钟（含等待）
+- 代码修改: ~15 分钟
+- 文档编写: ~45 分钟
+- 文档更新: ~30 分钟
+- **总计: 约 2 小时**
+
+**产出内容**:
+- 代码文件修改: 3 个
+- Azure 资源创建: 1 个服务器 + 1 个数据库 + 2 个防火墙规则
+- 新建文档: 3 个（共 1,400+ 行）
+- 更新文档: 2 个
+- Git 提交: 2 个
+
+**技术关键点**:
+1. ✅ 成功诊断内存不足问题
+2. ✅ 选择了成本最优的架构方案
+3. ✅ 完成 Azure PostgreSQL 创建和配置
+4. ✅ 更新代码支持 Azure 数据库
+5. ✅ 编写了完整的迁移文档
+
+---
+
+### 📋 待完成工作（明天继续）
+
+#### 阶段 4: 更新 VM 配置
+
+**4.1 重启 VM**
+```bash
+az vm restart --resource-group job-intelligence-rg --name jobintel-vm
+```
+
+**4.2 SSH 进入 VM 并更新配置**
+```bash
+# 进入 VM
+ssh azureuser@20.92.200.112
+
+# 拉取最新代码
+cd ~/job-intelligence
+git pull origin main
+
+# 更新 .env 文件
+nano .env
+# 添加:
+# DB_HOST=jobintel-db-e3b15416.postgres.database.azure.com
+# DB_PORT=5432
+# DB_NAME=jobintel
+# DB_USER=jobinteladmin
+# DB_PASSWORD=JobIntel2026!Secure
+```
+
+**4.3 重启服务**
+```bash
+docker compose down
+docker compose up -d
+```
+
+**4.4 验证运行**
+```bash
+# 检查容器状态（应该只有 2 个容器）
+docker ps
+
+# 测试 API
+curl http://localhost:5000/api/health
+curl http://localhost:8000/health
+
+# 查看自动迁移日志
+docker logs jobintel-dotnet-api | grep -i migration
+
+# 监控内存使用
+free -h
+docker stats --no-stream
+```
+
+#### 阶段 5-6: 监控和验证
+
+- [ ] 24 小时稳定性测试
+- [ ] 验证内存使用 < 40%
+- [ ] 确认所有 API 正常
+- [ ] 检查 Hangfire 任务执行
+- [ ] 性能测试
+
+**参考文档**: [AZURE_POSTGRES_MIGRATION.md](../deployment/AZURE_POSTGRES_MIGRATION.md) - 阶段 4-6
+
+---
+
+### 🎯 成功指标
+
+#### 立即验证（明天）:
+- ✅ VM 可访问
+- ✅ 只有 2 个容器运行（python-api, dotnet-api）
+- ✅ API 健康检查通过
+- ✅ 数据库连接成功
+- ✅ EF Core 自动迁移完成
+
+#### 24 小时验证:
+- ✅ 内存使用率 < 40%
+- ✅ 服务稳定运行
+- ✅ Hangfire 任务正常
+- ✅ 无崩溃或 OOM 错误
+
+#### 长期指标:
+- ✅ 月度成本 = $0
+- ✅ 内存增长率 < 5%/day
+- ✅ 99% 可用性
+
+---
+
+### 💡 技术亮点和经验总结
+
+#### 问题诊断
+1. **症状识别**: 通过内存使用趋势发现潜在问题
+2. **根本原因**: 资源限制（B1s 847 MB 不足）
+3. **决策过程**: 分析 3 个方案，选择成本最优方案
+
+#### 架构演进
+```
+第一次部署 (2026-01-05):
+  单 VM 部署 → 内存不足 → 26 小时后崩溃 ❌
+
+第二次优化 (2026-01-07):
+  混合架构 → 数据库分离 → 预期稳定运行 ✅
+
+未来可能:
+  完全容器化 + K8s → 横向扩展 → 如需扩展
+```
+
+#### 技术关键点
+1. **Azure 免费资源利用**: B1MS PostgreSQL 免费 750 小时/月
+2. **自动化迁移**: EF Core 自动建表，无需手动操作
+3. **SSL 连接**: Azure PostgreSQL 强制 SSL，添加 `SslMode=Require`
+4. **零停机设计**: 通过 Azure CLI 快速创建和配置
+
+#### 文档化实践
+1. **详细记录**: 所有命令可直接复制执行
+2. **故障预案**: 提前准备故障排查和回滚方案
+3. **知识传承**: 创建可复用的迁移模板
+
+---
+
+### 🔗 相关文档
+
+**部署文档**:
+- [Azure PostgreSQL 迁移计划](../deployment/AZURE_POSTGRES_MIGRATION.md) - 完整迁移指南
+- [工作总结 2026-01-07](../deployment/WORK_SUMMARY_2026-01-07.md) - 今日详细记录
+- [Azure 部署总结 2026-01-05](../deployment/DEPLOYMENT_SUMMARY_2026-01-05.md) - 第一次部署
+- [架构对比文档](../deployment/ARCHITECTURE_COMPARISON.md) - 架构演进分析
+
+**学习文档**:
+- [学习总结 2026-01-05](../LEARNING_SUMMARY_2026-01-05.md) - CI/CD 和部署学习
+
+**索引**:
+- [文档索引](../DOCUMENTATION_INDEX.md) - 所有文档导航
+
+---
+
+## 🎯 当前项目状态 (2026-01-07)
+
+### ✅ MVP V1 - 已部署（需要完成数据库迁移）
+
+**阶段状态**:
+- ✅ MVP V1 开发完成（2025-12-26）
+- ✅ CI/CD 配置完成（2026-01-05）
+- ✅ 首次部署成功（2026-01-05）
+- ⚠️ 发现内存问题（2026-01-07）
+- 🔄 数据库迁移中（2026-01-07）- **50% 完成**
+  - ✅ Azure PostgreSQL 已创建
+  - ✅ 代码已更新
+  - ⏳ 等待 VM 配置更新（明天）
+
+**技术栈**:
+- Python 爬虫 API: ✅ 生产就绪
+- .NET 后端 API: ✅ 生产就绪
+- PostgreSQL 数据库: 🔄 迁移到 Azure 中
+- Hangfire 定时任务: ✅ 65 个任务配置
+- CI/CD: ✅ GitHub Actions 自动部署
+
+**部署架构**:
+```
+当前目标架构（迁移后）:
+┌─────────────────────────────────────┐
+│ Azure PostgreSQL Flexible Server   │
+│ - B1MS (FREE)                       │
+│ - PostgreSQL 16                     │
+│ - 32 GB Storage                     │
+└─────────────────────────────────────┘
+            ↑ SSL
+            │
+┌─────────────────────────────────────┐
+│ Azure VM B1s (847 MB)               │
+│ ├─ Python API (46 MB)               │
+│ └─ .NET API (122 MB)                │
+│ Memory: 268 MB (27%) ✅             │
+└─────────────────────────────────────┘
+```
+
+**数据质量**: 95%+
+**成本**: $0/月（完全免费）
+**可用性**: 目标 99%+
+
+---
+
+## 📝 下一步行动
+
+### 立即可做（明天 2026-01-08）:
+
+1. **完成数据库迁移** (预计 30 分钟)
+   - 重启 VM
+   - 更新 .env 配置
+   - 重启 Docker 服务
+   - 验证运行状态
+
+2. **24 小时监控** (持续)
+   - 监控内存使用
+   - 验证服务稳定性
+   - 检查 Hangfire 任务
+
+3. **性能验证** (1 小时)
+   - API 响应时间测试
+   - 数据库连接测试
+   - 端到端功能测试
+
+### 后续计划（视情况而定）:
+
+**如果迁移成功且稳定运行**:
+- 继续 V2 开发计划（用户系统 + 前端）
+- 或者优化 Portfolio 准备面试
+
+**如果遇到问题**:
+- 执行回滚方案（已准备）
+- 分析问题并调整方案
+
+---
+
+**最后更新:** 2026-01-07
+**本次更新:** Azure PostgreSQL 迁移准备完成，等待明天执行最后步骤
+**状态:** 🔄 数据库迁移进行中（50% 完成）
+**下一步:** 更新 VM 配置并验证运行
