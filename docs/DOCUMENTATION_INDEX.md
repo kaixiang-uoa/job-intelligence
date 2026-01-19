@@ -1,16 +1,25 @@
 # 文档索引
 
-**最后更新**: 2026-01-07
+**最后更新**: 2026-01-19
 
 ---
 
 ## 📌 最新重要文档
 
-### 部署相关（2026-01-07 更新）
+### Bug 修复和监控（2026-01-19 更新）
 
 | 文档 | 状态 | 用途 | 链接 |
 |------|------|------|------|
-| **Azure PostgreSQL 迁移计划** | ✅ 最新 | 数据库从 VM 迁移到 Azure 托管服务 | [AZURE_POSTGRES_MIGRATION.md](deployment/AZURE_POSTGRES_MIGRATION.md) |
+| **Bug 修复记录 2026-01-19** | ✅ 最新 | DateTime UTC 和去重逻辑 Bug 修复详细记录 | [BUG_FIXES_2026-01-19.md](core/BUG_FIXES_2026-01-19.md) |
+| **日志监控计划** | 📋 规划中 | 短期/中期/长期监控方案,Application Insights 配置 | [LOGGING_MONITORING_PLAN.md](core/LOGGING_MONITORING_PLAN.md) |
+| **每日计划** | ✅ 最新 | 开发进度和问题追踪 | [DAILY_PLAN.md](development/DAILY_PLAN.md#2026-01-19) |
+
+### 部署相关（2026-01-10 更新）
+
+| 文档 | 状态 | 用途 | 链接 |
+|------|------|------|------|
+| **Azure PostgreSQL 迁移完成** | ✅ 完成 | 数据库迁移执行记录 | [MIGRATION_COMPLETE_2026-01-10.md](deployment/MIGRATION_COMPLETE_2026-01-10.md) |
+| **Azure PostgreSQL 迁移计划** | ✅ 参考 | 数据库从 VM 迁移到 Azure 托管服务 | [AZURE_POSTGRES_MIGRATION.md](deployment/AZURE_POSTGRES_MIGRATION.md) |
 | **Azure 部署完整总结** | ✅ 参考 | 部署过程回顾、技术细节、问题解决 | [DEPLOYMENT_SUMMARY_2026-01-05.md](deployment/DEPLOYMENT_SUMMARY_2026-01-05.md) |
 | **学习总结** | ✅ 参考 | 深度学习笔记、面试准备、概念理解 | [LEARNING_SUMMARY_2026-01-05.md](LEARNING_SUMMARY_2026-01-05.md) |
 | **CI/CD 部署指南** | ✅ 当前 | GitHub Actions 使用文档 | [deployment/CICD_DEPLOYMENT.md](deployment/CICD_DEPLOYMENT.md) |
@@ -83,6 +92,26 @@
 ---
 
 ## 🔄 文档更新历史
+
+### 2026-01-19
+- ✅ 新增：[Bug 修复记录 2026-01-19](core/BUG_FIXES_2026-01-19.md) - DateTime UTC 和去重逻辑 Bug 详细记录 (400+ 行)
+- ✅ 新增：[日志监控计划](core/LOGGING_MONITORING_PLAN.md) - 短期/中期/长期监控方案 (300+ 行)
+- ✅ 更新：[每日计划](development/DAILY_PLAN.md) - 添加 2026-01-19 工作记录
+- ✅ 修复代码：
+  - `scrape-api/app/adapters/seek_adapter.py` - DateTime UTC 转换
+  - `scrape-api/app/adapters/indeed_adapter.py` - DateTime UTC 转换
+  - `src/JobIntel.Ingest/Services/IngestionPipeline.cs` - 去重逻辑修复
+  - `src/JobIntel.Core/Interfaces/IJobRepository.cs` - 新增 GetBySourceIdAsync 方法
+  - `src/JobIntel.Infrastructure/Repositories/JobRepository.cs` - 实现 GetBySourceIdAsync
+- ✅ 新增测试：
+  - `scrape-api/tests/test_datetime_fix.py` - 4 个 DateTime 测试
+  - `scrape-api/tests/test_adapter_datetime.py` - 3 个适配器测试
+- 📋 背景：内存异常增长（77% → 92%），发现两个关键 Bug 导致 Hangfire 重试堆积
+
+### 2026-01-10
+- ✅ 新增：[Azure PostgreSQL 迁移完成](deployment/MIGRATION_COMPLETE_2026-01-10.md) - 迁移执行记录
+- ✅ 完成：数据库迁移到 Azure PostgreSQL Flexible Server
+- ✅ 验证：内存使用率从 97% 降至 77%
 
 ### 2026-01-07
 - ✅ 新增：[Azure PostgreSQL 迁移计划](deployment/AZURE_POSTGRES_MIGRATION.md) - 数据库从 VM 迁移到 Azure 托管服务
