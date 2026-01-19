@@ -5,7 +5,7 @@ Indeed 平台适配器
 """
 
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 from loguru import logger
 
 try:
@@ -162,14 +162,25 @@ class IndeedAdapter(BaseJobAdapter):
         pay_range_max = float(max_amount) if max_amount is not None and str(max_amount).replace('.', '').isdigit() else None
 
         # 处理发布时间
+        # 🔧 FIX: 确保返回 UTC timezone-aware datetime，避免 PostgreSQL "Kind=Unspecified" 错误
         date_posted = row.get('date_posted')
         posted_at = None
         if date_posted is not None:
             try:
                 if isinstance(date_posted, str):
-                    posted_at = datetime.fromisoformat(date_posted.replace('Z', '+00:00'))
+                    # 解析 ISO 格式时间字符串并转换为 UTC
+                    dt = datetime.fromisoformat(date_posted.replace('Z', '+00:00'))
+                    # 确保是 timezone-aware 且为 UTC
+                    if dt.tzinfo is None:
+                        posted_at = dt.replace(tzinfo=timezone.utc)
+                    else:
+                        posted_at = dt.astimezone(timezone.utc)
                 else:
-                    posted_at = date_posted
+                    # 确保已有的 datetime 也是 timezone-aware UTC
+                    if date_posted.tzinfo is None:
+                        posted_at = date_posted.replace(tzinfo=timezone.utc)
+                    else:
+                        posted_at = date_posted.astimezone(timezone.utc)
             except Exception as e:
                 logger.debug(f"Failed to parse date_posted: {e}")
 

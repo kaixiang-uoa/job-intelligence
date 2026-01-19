@@ -53,8 +53,15 @@ public class IngestionPipeline : IIngestionPipeline
                 job.Fingerprint = _deduplicationService.GenerateFingerprint(job);
                 job.ContentHash = _deduplicationService.GenerateContentHash(job.Description, null);
 
-                // Step 3: Check for existing job by fingerprint
-                var existingJob = await _jobRepository.GetByFingerprintAsync(job.Fingerprint, cancellationToken);
+                // Step 3: Check for existing job by source + source_id FIRST (primary dedup key)
+                // 🔧 FIX: 先检查 source+source_id，避免违反 uq_source_external_id 约束
+                var existingJob = await _jobRepository.GetBySourceIdAsync(job.Source, job.SourceId, cancellationToken);
+
+                // If not found by source_id, also check by fingerprint (fallback for content-similar jobs)
+                if (existingJob == null)
+                {
+                    existingJob = await _jobRepository.GetByFingerprintAsync(job.Fingerprint, cancellationToken);
+                }
 
                 if (existingJob == null)
                 {

@@ -7,7 +7,7 @@ SEEK 职位数据适配器
 import logging
 import requests
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.models.job_posting_dto import JobPostingDTO, ScrapeRequest, PlatformEnum
 from app.adapters.base_adapter import BaseJobAdapter
@@ -399,17 +399,29 @@ class SeekAdapter(BaseJobAdapter):
             job_url = f"https://www.seek.com.au/job/{job_id}"
 
             # 解析发布时间（如果是字符串，转换为 datetime）
+            # 🔧 FIX: 确保返回 UTC timezone-aware datetime，避免 PostgreSQL "Kind=Unspecified" 错误
             posted_at = None
             if created_at:
                 if isinstance(created_at, str):
                     try:
-                        posted_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                        # 解析 ISO 格式时间字符串并转换为 UTC
+                        dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                        # 确保是 timezone-aware 且为 UTC
+                        if dt.tzinfo is None:
+                                posted_at = dt.replace(tzinfo=timezone.utc)
+                        else:
+                            # 转换到 UTC
+                            posted_at = dt.astimezone(timezone.utc)
                     except ValueError as e:
                         logger.warning(f"职位 {job_id} 日期解析失败: {created_at}, 错误: {e}")
                         # 日期解析失败不影响其他数据，继续处理
                         posted_at = None
                 elif isinstance(created_at, datetime):
-                    posted_at = created_at
+                    # 确保已有的 datetime 也是 timezone-aware UTC
+                    if created_at.tzinfo is None:
+                        posted_at = created_at.replace(tzinfo=timezone.utc)
+                    else:
+                        posted_at = created_at.astimezone(timezone.utc)
 
             # 创建 DTO（使用正确的字段名）
             try:

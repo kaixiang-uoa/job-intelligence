@@ -264,3 +264,4 @@ scrape-api-research/
 
 # Deployment credentials (NEVER commit)
 docs/deployment/DEPLOYMENT_CREDENTIALS.md
+AZURE_DB_INFO.txt
