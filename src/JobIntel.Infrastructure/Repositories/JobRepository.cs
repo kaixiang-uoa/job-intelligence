@@ -35,6 +35,12 @@ public class JobRepository : IJobRepository
             .FirstOrDefaultAsync(x => x.Fingerprint == fingerprint, cancellationToken);
     }
 
+    public async Task<JobPosting?> GetBySourceIdAsync(string source, string sourceId, CancellationToken cancellationToken = default)
+    {
+        return await _context.JobPostings
+            .FirstOrDefaultAsync(x => x.Source == source && x.SourceId == sourceId, cancellationToken);
+    }
+
     public async Task<int> InsertAsync(JobPosting job, CancellationToken cancellationToken = default)
     {
         try

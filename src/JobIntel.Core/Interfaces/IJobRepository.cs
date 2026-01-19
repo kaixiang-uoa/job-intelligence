@@ -13,6 +13,8 @@ public interface IJobRepository
 
     Task<JobPosting?> GetByFingerprintAsync(string fingerprint, CancellationToken cancellationToken = default);
 
+    Task<JobPosting?> GetBySourceIdAsync(string source, string sourceId, CancellationToken cancellationToken = default);
+
     Task<int> InsertAsync(JobPosting job, CancellationToken cancellationToken = default);
 
     Task UpdateAsync(JobPosting job, CancellationToken cancellationToken = default);
