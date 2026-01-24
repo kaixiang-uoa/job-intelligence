@@ -6,6 +6,12 @@
 
 ## 📌 最新重要文档
 
+### 项目路线图（2026-01-19 ⭐ 新增）
+
+| 文档 | 状态 | 用途 | 链接 |
+|------|------|------|------|
+| **项目路线图** | ⭐ 核心 | 整合短中长期规划,包含 3 条中期路线选择 | [PROJECT_ROADMAP.md](core/PROJECT_ROADMAP.md) |
+
 ### Bug 修复和监控（2026-01-19 更新）
 
 | 文档 | 状态 | 用途 | 链接 |
@@ -41,6 +47,9 @@
 
 | 文档 | 说明 |
 |------|------|
+| ⭐ [项目路线图](core/PROJECT_ROADMAP.md) | **核心规划文档** - 整合短中长期发展路线 |
+| [V2 实施计划](development/V2_IMPLEMENTATION_PLAN.md) | V2 详细实施步骤和技术方案 |
+| [优化路线图](core/OPTIMIZATION_ROADMAP.md) | 性能优化和功能扩展任务清单 |
 | [MVP V1 完成总结](MVP_V1_COMPLETION.md) | MVP V1 功能清单和完成状态 |
 | [V1 完成总结](core/V1_COMPLETION_SUMMARY.md) | V1 版本详细总结 |
 | [.NET 集成完成](core/DOTNET_INTEGRATION_COMPLETE.md) | .NET 后端集成文档 |
@@ -93,7 +102,15 @@
 
 ## 🔄 文档更新历史
 
-### 2026-01-19
+### 2026-01-19 (下午更新)
+- ⭐ 新增：[项目路线图](core/PROJECT_ROADMAP.md) - **核心规划文档**,整合短中长期发展路线 (700+ 行)
+  - 包含当前状态评估
+  - 3 条中期路线选择 (快速/深度/全栈)
+  - 详细实施步骤和成功指标
+  - 与现有文档完全整合,避免重复
+- ✅ 更新：[文档索引](DOCUMENTATION_INDEX.md) - 添加路线图到核心文档区
+
+### 2026-01-19 (上午)
 - ✅ 新增：[Bug 修复记录 2026-01-19](core/BUG_FIXES_2026-01-19.md) - DateTime UTC 和去重逻辑 Bug 详细记录 (400+ 行)
 - ✅ 新增：[日志监控计划](core/LOGGING_MONITORING_PLAN.md) - 短期/中期/长期监控方案 (300+ 行)
 - ✅ 更新：[每日计划](development/DAILY_PLAN.md) - 添加 2026-01-19 工作记录
